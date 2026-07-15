@@ -22,17 +22,31 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       - RLS scoped by organization_id via `auth_org_id()` / `auth_role()` helper functions
       - NOT yet applied to an actual Supabase project (no project created yet)
 
+- [x] `src/lib/supabase/` client, server, admin (service-role) helpers
+- [x] Auth: login page (`/login`) + server actions (`login`, `logout`)
+- [x] Route protection via `src/proxy.ts` (Next 16 renamed middleware.ts to proxy.ts) —
+      role-gates `/admin`, `/owner`, `/caretaker` by reading `profiles.role`, redirects
+      unauthenticated/wrong-role users to `/login`
+- [x] Platform admin flow: `/admin/organizations` (list) + `/admin/organizations/new`
+      (form) — creates org row, invites owner via `auth.admin.inviteUserByEmail`,
+      creates their `profiles` row with role=owner. Rolls back the org if the invite fails.
+- [x] Placeholder `/owner` and `/caretaker` dashboards (just enough to prove routing +
+      role gating works end to end) — no real bill data wired up yet
+- [x] Verified: `npm run build` passes clean (had to swap next/font Google Fonts for
+      system fonts — this sandbox's network doesn't reach fonts.googleapis.com; not
+      expected to be an issue on Vercel, but removed the dependency anyway)
+
 ### Not started yet
-- [ ] Create actual Supabase project, apply schema.sql, get env vars
-- [ ] `src/lib/supabase/` client + server helpers
-- [ ] Auth: login pages for owner/caretaker/platform_admin roles
+- [ ] Create actual Supabase project, apply schema.sql, get real env vars (still using
+      placeholders — nothing has been tested against a live Supabase instance yet)
 - [ ] Caretaker flow: flat list for the month, CER entry + photo upload
 - [ ] Owner flow: view bills, mark paid + mode, verify readings
-- [ ] Platform admin flow: create organization + first owner user (manual onboarding)
 - [ ] Auto-generate next month's monthly_bills rows (LER = prior CER, Previous = prior Difference)
 - [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
       process in parallel, has real lead time)
 - [ ] Deploy to Vercel
+- [ ] Storage bucket + policy for meter photos (referenced in schema as meter_photo_url,
+      bucket not created yet)
 
 ## Open decisions still pending (not blockers, but unresolved)
 - WhatsApp sending identity: per-org Meta account vs one shared branded number — schema
