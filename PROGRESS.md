@@ -60,9 +60,13 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       runtime-test from this sandbox — supabase.co isn't on the sandbox's network
       allow-list — needs testing on Vercel or a local machine with real network access)
 
+- [x] Caretaker invite flow: `/owner/caretakers` (list) + `/owner/caretakers/new` (form) —
+      owner invites a caretaker by email (same invite-link pattern as admin→owner),
+      profile created with role=caretaker scoped to the owner's own organization_id
+      (`src/app/owner/caretakers/`)
+
 ### Not started yet
-- [ ] Run `supabase/caretaker_functions.sql` in the SQL Editor (see above — not applied yet)
-- [ ] Caretaker account creation — currently ONLY the owner-invite flow exists
+- [ ] Run `supabase/caretaker_functions.sql` in the SQL Editor (see above — not applied yet) — currently ONLY the owner-invite flow exists
       (`/admin/organizations/new`). No way yet to invite a caretaker and link them to an
       organization/buildings. Needed before the caretaker flow above can actually be used.
 - [ ] Owner flow: view bills, mark paid + mode, verify readings (photo review)
