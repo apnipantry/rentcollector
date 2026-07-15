@@ -37,16 +37,39 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       expected to be an issue on Vercel, but removed the dependency anyway)
 
 ### Not started yet
-- [ ] Create actual Supabase project, apply schema.sql, get real env vars (still using
-      placeholders — nothing has been tested against a live Supabase instance yet)
-- [ ] Caretaker flow: flat list for the month, CER entry + photo upload
-- [ ] Owner flow: view bills, mark paid + mode, verify readings
-- [ ] Auto-generate next month's monthly_bills rows (LER = prior CER, Previous = prior Difference)
+- [x] Create actual Supabase project, apply schema.sql, get real env vars — DONE,
+      schema.sql and storage_and_functions.sql both applied to the live project
+- [x] `supabase/storage_and_functions.sql`: meter-photos storage bucket (private) +
+      RLS policies scoped by organization_id folder prefix, plus `ensure_monthly_bills()`
+      Postgres function (idempotent — safe to call every page load) that auto-creates
+      this month's bill rows per active-tenant flat, pulling LER/Previous from last month
+- [x] Caretaker flow (`/caretaker`): calls `ensure_monthly_bills()` on load, lists this
+      month's flats split into pending/submitted, per-flat form (CER + optional photo,
+      camera capture on mobile) posts via server action which uploads the photo to
+      the org-scoped storage path and updates the monthly_bills row
+      (`src/app/caretaker/actions.ts`, `page.tsx`, `ReadingForm.tsx`, `utils.ts`)
+- [x] `supabase/caretaker_functions.sql`: `submit_meter_reading()` — a security-definer
+      function that restricts a caretaker's write to exactly cer/photo/timestamp,
+      regardless of what the frontend sends (closes a gap where the raw table RLS
+      policy would otherwise have allowed writing paid/mode/verified too since it's
+      table-wide, not column-scoped). `actions.ts` now calls this RPC instead of a raw
+      `.update()`. **This file still needs to be run in the SQL Editor** — schema.sql
+      and storage_and_functions.sql are applied, this one is not yet.
+
+- [x] Verified: `npm run build` passes clean against real Supabase env vars (still can't
+      runtime-test from this sandbox — supabase.co isn't on the sandbox's network
+      allow-list — needs testing on Vercel or a local machine with real network access)
+
+### Not started yet
+- [ ] Run `supabase/caretaker_functions.sql` in the SQL Editor (see above — not applied yet)
+- [ ] Caretaker account creation — currently ONLY the owner-invite flow exists
+      (`/admin/organizations/new`). No way yet to invite a caretaker and link them to an
+      organization/buildings. Needed before the caretaker flow above can actually be used.
+- [ ] Owner flow: view bills, mark paid + mode, verify readings (photo review)
 - [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
       process in parallel, has real lead time)
 - [ ] Deploy to Vercel
-- [ ] Storage bucket + policy for meter photos (referenced in schema as meter_photo_url,
-      bucket not created yet)
+- [ ] Runtime testing end-to-end (blocked on the above two + real network access)
 
 ## Open decisions still pending (not blockers, but unresolved)
 - WhatsApp sending identity: per-org Meta account vs one shared branded number — schema
