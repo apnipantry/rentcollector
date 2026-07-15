@@ -8,6 +8,12 @@ export default function OwnerDashboard() {
         <h1 className="text-xl font-semibold text-gray-900">Your Buildings</h1>
         <div className="flex gap-3">
           <Link
+            href="/owner/buildings"
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            Buildings
+          </Link>
+          <Link
             href="/owner/caretakers"
             className="text-sm text-gray-600 hover:text-gray-900"
           >

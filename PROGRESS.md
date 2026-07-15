@@ -65,8 +65,20 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       profile created with role=caretaker scoped to the owner's own organization_id
       (`src/app/owner/caretakers/`)
 
+- [x] `supabase/tenant_functions.sql`: `replace_tenant()` — atomically deactivates the
+      current tenant and inserts the new one, enforcing org ownership and role
+      server-side (avoids the "flat briefly has 0 or 2 active tenants" race).
+      **Needs to be run in the SQL Editor** — not applied yet.
+- [x] Building/flat/tenant management UI (owner-side):
+      `/owner/buildings` (list + create), `/owner/buildings/[id]` (detail + flats list +
+      add flat), `/owner/buildings/[id]/flats/new`, `/owner/flats/[id]` (detail, current +
+      past tenants), `/owner/flats/[id]/tenants/new` (add/replace tenant, warns that
+      adding a new tenant retires the old one). Phone numbers normalized to
+      91XXXXXXXXXX in `replaceTenant()` server action before hitting the RPC.
+
 ### Not started yet
-- [ ] Run `supabase/caretaker_functions.sql` in the SQL Editor (see above — not applied yet) — currently ONLY the owner-invite flow exists
+- [ ] Run `supabase/caretaker_functions.sql` AND `supabase/tenant_functions.sql` in the
+      SQL Editor (neither applied yet) — currently ONLY the owner-invite flow exists
       (`/admin/organizations/new`). No way yet to invite a caretaker and link them to an
       organization/buildings. Needed before the caretaker flow above can actually be used.
 - [ ] Owner flow: view bills, mark paid + mode, verify readings (photo review)
