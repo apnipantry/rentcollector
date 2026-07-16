@@ -96,9 +96,18 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       reusable sortable/filterable `DataTable` component with a colored
       left-border row-status treatment, `StatCard` + a real owner dashboard
       (buildings/flats/unpaid/unverified/collected-this-month counts).
-      **Only verified via `npm run build` + eslint — not visually verified in
-      a real browser**, since this sandbox has no way to render/screenshot
-      the app. Worth an actual look before considering this done.
+      Confirmed working live on `/admin/organizations` after fixing a real bug
+      (see below) — not just build-checked anymore.
+- [x] Fixed a server error on `/admin/organizations`, `/owner/buildings`,
+      `/owner/caretakers` introduced by the redesign above: column definitions
+      (accessor/sortValue functions) were defined in server-component pages and
+      passed as props into the client-component `DataTable` — functions can't
+      cross the server→client boundary as plain props (only `"use server"`
+      actions can). `npm run build` didn't catch it since these are dynamic
+      routes not rendered at build time; only surfaced on a real request.
+      Fixed by moving each page's columns into a small client wrapper
+      (`OrganizationsTable`, `BuildingsTable`, `CaretakersTable`, `FlatsTable`)
+      that takes only plain row data from its server-component parent.
 
 ### Not started yet
 - [ ] **CRITICAL, confirmed live during first login attempt:** `auth_org_id()` and
