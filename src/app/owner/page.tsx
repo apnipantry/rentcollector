@@ -27,7 +27,7 @@ export default async function OwnerDashboard() {
     bills?.reduce((sum, b) => sum + (Number(b.paid) || 0), 0) ?? 0;
 
   return (
-    <div className="mx-auto max-w-4xl p-8">
+    <div className="mx-auto max-w-4xl p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-ink">Dashboard</h1>
         <p className="text-sm text-ink-muted">{monthLabel(billingMonth)}</p>

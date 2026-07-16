@@ -81,8 +81,9 @@ export default function DataTable<T extends { id: string }>({
         </div>
       )}
 
-      <table className="w-full text-sm">
-        <thead className="bg-paper text-left text-ink-muted">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
+          <thead className="bg-paper text-left text-ink-muted">
           <tr>
             {columns.map((col) => (
               <th
@@ -157,7 +158,8 @@ export default function DataTable<T extends { id: string }>({
             </tr>
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }

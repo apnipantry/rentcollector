@@ -117,6 +117,13 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       also kept `caretaker_functions.sql` in sync as source of truth). **Not
       yet run in the SQL Editor.**
 
+- [x] Mobile-responsive pass on owner/admin screens: sidebar is now a slide-out
+      drawer under the `sm` breakpoint (top bar + hamburger, backdrop-to-close,
+      closes on link tap) via new `AppShell.tsx`, persistent sidebar unchanged
+      on larger screens; `DataTable` scrolls horizontally instead of squeezing
+      columns; page padding scales down (`p-4` mobile → `p-8` desktop). Only
+      build/lint-checked, not visually verified on an actual phone.
+
 ### Not started yet
 - [ ] **CRITICAL, confirmed live during first login attempt:** `auth_org_id()` and
       `auth_role()` in schema.sql were not `security definer`. Since policies on

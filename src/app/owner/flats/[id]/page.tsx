@@ -68,7 +68,7 @@ export default async function FlatDetailPage({
   const nextMonthFixed = flat.rent + (building?.garbage_fee ?? 0);
 
   return (
-    <div className="mx-auto max-w-3xl p-8">
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
       <Link
         href={`/owner/buildings/${flat.building_id}`}
         className="mb-4 inline-block text-xs text-ink-muted hover:text-ink"

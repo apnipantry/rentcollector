@@ -61,7 +61,7 @@ export default async function OwnerBillsPage({
   const unverified = withSignedUrls.filter((b) => !b.verified).length;
 
   return (
-    <div className="mx-auto max-w-3xl p-8">
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
       <div className="mb-4">
         <h1 className="text-xl font-semibold text-ink">
           {monthLabel(billingMonth)} Bills

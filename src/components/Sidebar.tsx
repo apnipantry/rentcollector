@@ -13,16 +13,18 @@ export default function Sidebar({
   items,
   identity,
   onLogout,
+  onNavigate,
 }: {
   title: string;
   items: NavItem[];
   identity?: string;
   onLogout: () => void;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full w-56 flex-shrink-0 flex-col bg-ink text-white">
+    <aside className="flex h-full w-64 flex-shrink-0 flex-col bg-ink text-white sm:w-56">
       <div className="border-b border-white/10 px-5 py-5">
         <p className="text-sm font-semibold tracking-wide">{title}</p>
       </div>
@@ -38,7 +40,8 @@ export default function Sidebar({
             <Link
               key={item.href}
               href={item.href}
-              className={`block rounded px-3 py-2 text-sm transition-colors ${
+              onClick={onNavigate}
+              className={`block rounded px-3 py-2.5 text-sm transition-colors sm:py-2 ${
                 active
                   ? "bg-accent text-white"
                   : "text-white/65 hover:bg-white/5 hover:text-white"

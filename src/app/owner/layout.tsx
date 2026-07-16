@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/login/actions";
-import Sidebar from "@/components/Sidebar";
+import AppShell from "@/components/AppShell";
 
 export default async function OwnerLayout({
   children,
@@ -23,21 +23,20 @@ export default async function OwnerLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar
-        title="RentCollector"
-        identity={identity}
-        onLogout={logout}
-        items={[
-          { href: "/owner", label: "Dashboard" },
-          { href: "/owner/bills", label: "Bills" },
-          { href: "/owner/buildings", label: "Buildings" },
-          { href: "/owner/flats", label: "Flats" },
-          { href: "/owner/tenants", label: "Tenants" },
-          { href: "/owner/caretakers", label: "Caretakers" },
-        ]}
-      />
-      <main className="min-h-screen flex-1 bg-paper">{children}</main>
-    </div>
+    <AppShell
+      title="RentCollector"
+      identity={identity}
+      onLogout={logout}
+      items={[
+        { href: "/owner", label: "Dashboard" },
+        { href: "/owner/bills", label: "Bills" },
+        { href: "/owner/buildings", label: "Buildings" },
+        { href: "/owner/flats", label: "Flats" },
+        { href: "/owner/tenants", label: "Tenants" },
+        { href: "/owner/caretakers", label: "Caretakers" },
+      ]}
+    >
+      {children}
+    </AppShell>
   );
 }

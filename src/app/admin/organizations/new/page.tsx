@@ -8,7 +8,7 @@ export default async function NewOrganizationPage({
   const params = await searchParams;
 
   return (
-    <div className="mx-auto max-w-lg p-8">
+    <div className="mx-auto max-w-lg p-4 sm:p-8">
       <h1 className="mb-6 text-xl font-semibold text-ink">
         Add Building Owner
       </h1>

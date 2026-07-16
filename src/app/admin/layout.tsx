@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/login/actions";
-import Sidebar from "@/components/Sidebar";
+import AppShell from "@/components/AppShell";
 
 export default async function AdminLayout({
   children,
@@ -23,14 +23,13 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar
-        title="RentCollector Admin"
-        identity={identity}
-        onLogout={logout}
-        items={[{ href: "/admin/organizations", label: "Building Owners" }]}
-      />
-      <main className="min-h-screen flex-1 bg-paper">{children}</main>
-    </div>
+    <AppShell
+      title="RentCollector Admin"
+      identity={identity}
+      onLogout={logout}
+      items={[{ href: "/admin/organizations", label: "Building Owners" }]}
+    >
+      {children}
+    </AppShell>
   );
 }

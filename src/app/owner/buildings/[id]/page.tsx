@@ -40,7 +40,7 @@ export default async function BuildingDetailPage({
     }) ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl p-8">
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
       <Link
         href="/owner/buildings"
         className="mb-4 inline-block text-xs text-ink-muted hover:text-ink"

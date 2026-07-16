@@ -20,7 +20,7 @@ export default async function BuildingsPage() {
     })) ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl p-8">
+    <div className="mx-auto max-w-3xl p-4 sm:p-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-ink">Buildings</h1>
         <Link
