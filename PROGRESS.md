@@ -102,10 +102,22 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       on `monthly_bills` for the `authenticated` role and force all writes through
       the security-definer functions. Not done here — didn't want to change RLS
       blind with no way to runtime-test it from this sandbox.
+- [ ] **No bootstrap path for the first platform_admin.** Every role after it is
+      created via an invite chain (admin invites owner, owner invites caretaker),
+      but nothing creates the first admin — confirmed live: signing in with a
+      manually-created Supabase Auth user hit `no-profile` / "No role assigned to
+      this account yet" because `login/actions.ts` looks up a `profiles` row that
+      doesn't exist until one is inserted by hand. Current workaround: create the
+      auth user in the Supabase dashboard, then manually
+      `insert into profiles (id, role, full_name) values ('<uid>', 'platform_admin', '...')`
+      in the SQL Editor. Worth a proper fix later — e.g. a one-time seed script or
+      a documented manual step in a SETUP.md — so this isn't rediscovered per
+      deployment.
 - [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
       process in parallel, has real lead time)
-- [ ] Deploy to Vercel
-- [ ] Runtime testing end-to-end (blocked on the above two + real network access)
+- [x] Deploy to Vercel — done
+- [ ] Runtime testing end-to-end (in progress — hit the platform_admin bootstrap gap
+      above on first login attempt; not yet completed)
 
 ## Open decisions still pending (not blockers, but unresolved)
 - WhatsApp sending identity: per-org Meta account vs one shared branded number — schema
