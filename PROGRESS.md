@@ -89,6 +89,17 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       path to supabase.co here). Caretaker invite → caretaker flow →
       owner mark-paid/verify should now be usable end to end on a real deployment.
 
+- [x] CRM-style redesign of owner/admin desk screens (explicitly scoped to
+      exclude the caretaker mobile flow, per decision): design tokens
+      (paper/ink/surface/line/accent/amber/red), persistent sidebar nav
+      (`src/components/Sidebar.tsx`, `owner/layout.tsx`, `admin/layout.tsx`),
+      reusable sortable/filterable `DataTable` component with a colored
+      left-border row-status treatment, `StatCard` + a real owner dashboard
+      (buildings/flats/unpaid/unverified/collected-this-month counts).
+      **Only verified via `npm run build` + eslint — not visually verified in
+      a real browser**, since this sandbox has no way to render/screenshot
+      the app. Worth an actual look before considering this done.
+
 ### Not started yet
 - [ ] **CRITICAL, confirmed live during first login attempt:** `auth_org_id()` and
       `auth_role()` in schema.sql were not `security definer`. Since policies on
