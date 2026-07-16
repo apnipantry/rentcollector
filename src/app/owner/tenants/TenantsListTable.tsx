@@ -20,45 +20,78 @@ export interface TenantListRow {
   difference: number | null;
 }
 
-function MarkPaidCell({ row }: { row: TenantListRow }) {
+function TenantBillCell({ row }: { row: TenantListRow }) {
   const [isPending, startTransition] = useTransition();
-  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [paid, setPaid] = useState(String(row.paid ?? 0));
+  const [mode, setMode] = useState(row.mode ?? "");
+  const [verified, setVerified] = useState(row.verified ?? false);
 
   if (!row.billId || row.total === null) {
-    return <span className="text-ink-muted">—</span>;
+    return <span className="text-ink-muted">No bill yet</span>;
   }
 
-  const fullyPaid = (row.paid ?? 0) >= row.total || done;
-
-  if (fullyPaid) {
-    return <span className="text-accent">Paid</span>;
-  }
-
-  function handleClick(e: React.MouseEvent) {
+  function handleSave(e: React.MouseEvent) {
     e.stopPropagation();
+    setError(null);
     const formData = new FormData();
     formData.set("billId", row.billId!);
-    formData.set("paid", String(row.total));
-    formData.set("mode", row.mode ?? "");
-    formData.set("verified", row.verified ? "on" : "");
+    formData.set("paid", paid);
+    formData.set("mode", mode);
+    formData.set("verified", verified ? "on" : "");
     startTransition(async () => {
       try {
         await updateBillPayment(formData);
-        setDone(true);
-      } catch {
-        // swallow here — the bills page is the place for error detail
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Something went wrong");
       }
     });
   }
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isPending}
-      className="rounded border border-ink px-2 py-1 text-xs font-medium text-ink hover:bg-paper disabled:opacity-50"
+    <div
+      className="flex flex-wrap items-end gap-2"
+      onClick={(e) => e.stopPropagation()}
     >
-      {isPending ? "Saving…" : "Mark Paid"}
-    </button>
+      <div>
+        <label className="block text-[10px] text-ink-muted">
+          Total ₹{row.total}
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          value={paid}
+          onChange={(e) => setPaid(e.target.value)}
+          className="mt-0.5 w-20 rounded border border-line px-2 py-1 text-xs"
+        />
+      </div>
+      <select
+        value={mode}
+        onChange={(e) => setMode(e.target.value)}
+        className="rounded border border-line px-2 py-1 text-xs"
+      >
+        <option value="">Mode —</option>
+        <option value="cash">Cash</option>
+        <option value="online">Online</option>
+      </select>
+      <label className="flex items-center gap-1 pb-1 text-[10px] text-ink-muted">
+        <input
+          type="checkbox"
+          checked={verified}
+          onChange={(e) => setVerified(e.target.checked)}
+        />
+        Verified
+      </label>
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isPending}
+        className="rounded bg-ink px-2 py-1 text-xs font-medium text-white hover:bg-ink/90 disabled:opacity-50"
+      >
+        {isPending ? "…" : "Save"}
+      </button>
+      {error && <p className="w-full text-[10px] text-red">{error}</p>}
+    </div>
   );
 }
 
@@ -94,39 +127,8 @@ export default function TenantsListTable({ rows }: { rows: TenantListRow[] }) {
     },
     {
       key: "bill",
-      header: "This month",
-      accessor: (r) => {
-        if (r.total === null) {
-          return <span className="text-ink-muted">No bill yet</span>;
-        }
-        const paid = r.paid ?? 0;
-        if (paid >= r.total) {
-          return (
-            <span className="text-accent">
-              ₹{r.total} paid
-              {!r.verified && (
-                <span className="ml-1 text-amber">· unverified</span>
-              )}
-            </span>
-          );
-        }
-        if (paid > 0) {
-          return (
-            <span className="text-amber">
-              ₹{paid} of ₹{r.total}
-            </span>
-          );
-        }
-        return <span className="text-amber">₹{r.total} unpaid</span>;
-      },
-      sortValue: (r) => (r.total ?? 0) - (r.paid ?? 0),
-      align: "right",
-    },
-    {
-      key: "action",
-      header: "",
-      accessor: (r) => <MarkPaidCell row={r} />,
-      align: "right",
+      header: "This month's payment",
+      accessor: (r) => <TenantBillCell row={r} />,
     },
   ];
 
