@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "@/app/login/actions";
 import Link from "next/link";
 import { ensureMonthBills } from "./actions";
 import { currentBillingMonth, monthLabel, shiftMonth } from "./utils";
@@ -62,49 +61,39 @@ export default async function OwnerBillsPage({
   const unverified = withSignedUrls.filter((b) => !b.verified).length;
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">
-            {monthLabel(billingMonth)} Bills
-          </h1>
-          <p className="text-sm text-gray-500">
-            {unresolved.length} unpaid/pending · {settled.length} settled ·{" "}
-            {unverified} unverified
-          </p>
-        </div>
-        <form action={logout}>
-          <button className="text-sm text-gray-500 hover:text-gray-700">
-            Sign out
-          </button>
-        </form>
+    <div className="mx-auto max-w-3xl p-8">
+      <div className="mb-4">
+        <h1 className="text-xl font-semibold text-ink">
+          {monthLabel(billingMonth)} Bills
+        </h1>
+        <p className="text-sm text-ink-muted">
+          {unresolved.length} unpaid/pending · {settled.length} settled ·{" "}
+          {unverified} unverified
+        </p>
       </div>
 
       <div className="mb-6 flex items-center justify-between text-sm">
         <Link
           href={`/owner/bills?month=${shiftMonth(billingMonth, -1)}`}
-          className="text-gray-600 hover:text-gray-900"
+          className="text-ink-muted hover:text-ink"
         >
           ← Previous month
         </Link>
         {!isCurrentMonth && (
-          <Link
-            href="/owner/bills"
-            className="text-gray-600 hover:text-gray-900"
-          >
+          <Link href="/owner/bills" className="text-ink-muted hover:text-ink">
             Back to current month
           </Link>
         )}
         <Link
           href={`/owner/bills?month=${shiftMonth(billingMonth, 1)}`}
-          className="text-gray-600 hover:text-gray-900"
+          className="text-ink-muted hover:text-ink"
         >
           Next month →
         </Link>
       </div>
 
       {!withSignedUrls.length && (
-        <p className="rounded border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+        <p className="rounded border border-line bg-surface p-4 text-sm text-ink-muted">
           No bills for this month yet.
         </p>
       )}
@@ -117,7 +106,7 @@ export default async function OwnerBillsPage({
 
       {settled.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-sm font-medium text-gray-500">Settled</h2>
+          <h2 className="mb-2 text-sm font-medium text-ink-muted">Settled</h2>
           <div className="space-y-3">
             {settled.map((bill) => (
               <BillRow key={bill.id} bill={bill} />

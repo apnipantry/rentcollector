@@ -9,27 +9,27 @@ export default async function NewBuildingPage({
 
   return (
     <div className="mx-auto max-w-lg p-6">
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">
+      <h1 className="mb-6 text-xl font-semibold text-ink">
         Add Building
       </h1>
 
       {params.error && (
-        <p className="mb-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="mb-4 rounded bg-red-soft px-3 py-2 text-sm text-red">
           {params.error}
         </p>
       )}
 
       <form action={createBuilding} className="space-y-4">
         <div>
-          <label className="block text-sm text-gray-700">Building name</label>
+          <label className="block text-sm text-ink">Building name</label>
           <input
             name="name"
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded border border-line px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-700">
+          <label className="block text-sm text-ink">
             Electricity rate (₹ per unit)
           </label>
           <input
@@ -38,11 +38,11 @@ export default async function NewBuildingPage({
             name="electricityRate"
             defaultValue={10}
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded border border-line px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-700">
+          <label className="block text-sm text-ink">
             Garbage fee (₹/month, per flat)
           </label>
           <input
@@ -50,12 +50,12 @@ export default async function NewBuildingPage({
             step="0.01"
             name="garbageFee"
             defaultValue={0}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded border border-line px-3 py-2 text-sm"
           />
         </div>
         <button
           type="submit"
-          className="w-full rounded bg-gray-900 py-2 text-sm font-medium text-white hover:bg-gray-800"
+          className="w-full rounded bg-ink py-2 text-sm font-medium text-white hover:bg-ink/90"
         >
           Create
         </button>

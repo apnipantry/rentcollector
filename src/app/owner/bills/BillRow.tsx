@@ -46,54 +46,54 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
     <form
       action={handleSubmit}
       className={`rounded-lg border p-4 ${
-        settled ? "border-gray-200" : "border-amber-200 bg-amber-50/40"
+        settled ? "border-line" : "border-amber bg-amber-soft"
       }`}
     >
       <input type="hidden" name="billId" value={bill.id} />
 
       <div className="mb-3 flex items-start justify-between">
         <div>
-          <p className="font-medium text-gray-900">
+          <p className="font-medium text-ink">
             Room {bill.flats?.room_no}
             {bill.flats?.buildings?.name
               ? ` · ${bill.flats.buildings.name}`
               : ""}
           </p>
-          <p className="text-xs text-gray-500">{bill.tenants?.name}</p>
+          <p className="text-xs text-ink-muted">{bill.tenants?.name}</p>
         </div>
         {!bill.reading_submitted_at && (
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+          <span className="rounded-full bg-paper px-2 py-0.5 text-xs text-ink-muted">
             No reading yet
           </span>
         )}
       </div>
 
-      <div className="mb-3 grid grid-cols-3 gap-x-4 gap-y-1 text-xs text-gray-600 sm:grid-cols-6">
+      <div className="mb-3 grid grid-cols-3 gap-x-4 gap-y-1 text-xs text-ink-muted sm:grid-cols-6">
         <div>
-          <p className="text-gray-400">LER → CER</p>
+          <p className="text-ink-muted">LER → CER</p>
           <p>
             {bill.ler ?? "—"} → {bill.cer ?? "—"}
           </p>
         </div>
         <div>
-          <p className="text-gray-400">EC</p>
+          <p className="text-ink-muted">EC</p>
           <p>₹{bill.ec}</p>
         </div>
         <div>
-          <p className="text-gray-400">Rent</p>
+          <p className="text-ink-muted">Rent</p>
           <p>₹{bill.rent}</p>
         </div>
         <div>
-          <p className="text-gray-400">Garbage</p>
+          <p className="text-ink-muted">Garbage</p>
           <p>₹{bill.garbage}</p>
         </div>
         <div>
-          <p className="text-gray-400">Previous</p>
+          <p className="text-ink-muted">Previous</p>
           <p>₹{bill.previous}</p>
         </div>
         <div>
-          <p className="text-gray-400">Total</p>
-          <p className="font-medium text-gray-900">₹{bill.total}</p>
+          <p className="text-ink-muted">Total</p>
+          <p className="font-medium text-ink">₹{bill.total}</p>
         </div>
       </div>
 
@@ -109,31 +109,31 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
       )}
 
       {error && (
-        <p className="mb-3 rounded bg-red-50 px-3 py-2 text-xs text-red-700">
+        <p className="mb-3 rounded bg-red-soft px-3 py-2 text-xs text-red">
           {error}
         </p>
       )}
 
       <div className="flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-xs text-gray-600">Paid</label>
+          <label className="block text-xs text-ink-muted">Paid</label>
           <input
             type="number"
             name="paid"
             step="0.01"
             value={paid}
             onChange={(e) => setPaid(e.target.value)}
-            className="mt-1 w-28 rounded border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-28 rounded border border-line px-3 py-2 text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-600">Mode</label>
+          <label className="block text-xs text-ink-muted">Mode</label>
           <select
             name="mode"
             value={mode}
             onChange={(e) => setMode(e.target.value)}
-            className="mt-1 rounded border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 rounded border border-line px-3 py-2 text-sm"
           >
             <option value="">—</option>
             <option value="cash">Cash</option>
@@ -141,7 +141,7 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
           </select>
         </div>
 
-        <label className="flex items-center gap-2 pb-2 text-xs text-gray-600">
+        <label className="flex items-center gap-2 pb-2 text-xs text-ink-muted">
           <input
             type="checkbox"
             name="verified"
@@ -154,16 +154,16 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          className="rounded bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-ink/90 disabled:opacity-50"
         >
           {isPending ? "Saving…" : "Save"}
         </button>
 
-        <p className="ml-auto text-xs text-gray-500">
+        <p className="ml-auto text-xs text-ink-muted">
           Difference:{" "}
           <span
             className={
-              bill.difference > 0 ? "font-medium text-amber-700" : ""
+              bill.difference > 0 ? "font-medium text-amber" : ""
             }
           >
             ₹{bill.difference}
