@@ -35,8 +35,6 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
 - [x] Verified: `npm run build` passes clean (had to swap next/font Google Fonts for
       system fonts — this sandbox's network doesn't reach fonts.googleapis.com; not
       expected to be an issue on Vercel, but removed the dependency anyway)
-
-### Not started yet
 - [x] Create actual Supabase project, apply schema.sql, get real env vars — DONE,
       schema.sql and storage_and_functions.sql both applied to the live project
 - [x] `supabase/storage_and_functions.sql`: meter-photos storage bucket (private) +
@@ -53,35 +51,56 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       regardless of what the frontend sends (closes a gap where the raw table RLS
       policy would otherwise have allowed writing paid/mode/verified too since it's
       table-wide, not column-scoped). `actions.ts` now calls this RPC instead of a raw
-      `.update()`. **This file still needs to be run in the SQL Editor** — schema.sql
-      and storage_and_functions.sql are applied, this one is not yet.
-
+      `.update()`. **Not yet run in the SQL Editor** — schema.sql and
+      storage_and_functions.sql are applied, this one is not.
 - [x] Verified: `npm run build` passes clean against real Supabase env vars (still can't
       runtime-test from this sandbox — supabase.co isn't on the sandbox's network
       allow-list — needs testing on Vercel or a local machine with real network access)
-
 - [x] Caretaker invite flow: `/owner/caretakers` (list) + `/owner/caretakers/new` (form) —
       owner invites a caretaker by email (same invite-link pattern as admin→owner),
       profile created with role=caretaker scoped to the owner's own organization_id
       (`src/app/owner/caretakers/`)
-
 - [x] `supabase/tenant_functions.sql`: `replace_tenant()` — atomically deactivates the
       current tenant and inserts the new one, enforcing org ownership and role
       server-side (avoids the "flat briefly has 0 or 2 active tenants" race).
-      **Needs to be run in the SQL Editor** — not applied yet.
+      **Not yet run in the SQL Editor.**
 - [x] Building/flat/tenant management UI (owner-side):
       `/owner/buildings` (list + create), `/owner/buildings/[id]` (detail + flats list +
       add flat), `/owner/buildings/[id]/flats/new`, `/owner/flats/[id]` (detail, current +
       past tenants), `/owner/flats/[id]/tenants/new` (add/replace tenant, warns that
       adding a new tenant retires the old one). Phone numbers normalized to
       91XXXXXXXXXX in `replaceTenant()` server action before hitting the RPC.
+- [x] Owner bills flow (`/owner/bills`): month view (± navigation via `?month=`),
+      auto-runs `ensure_monthly_bills()` only when viewing the actual current month,
+      shows LER/CER/EC/rent/garbage/previous/total/difference per flat, signed URL
+      link to the meter photo (10 min expiry), inline form to set paid amount + mode
+      + verified checkbox, split into unresolved/settled sections
+      (`src/app/owner/bills/page.tsx`, `BillRow.tsx`, `actions.ts`, `utils.ts`)
+- [x] `supabase/owner_functions.sql`: `owner_update_bill()` — column-scopes owner
+      writes to paid/mode/verified only, same pattern as `submit_meter_reading()`.
+      **Not yet run in the SQL Editor.** See the security note inside that file:
+      this does NOT by itself close the write-bypass gap described below, since
+      `monthly_bills_org_scoped` in schema.sql permits raw table writes to any
+      column for any org member regardless of role.
 
 ### Not started yet
-- [ ] Run `supabase/caretaker_functions.sql` AND `supabase/tenant_functions.sql` in the
-      SQL Editor (neither applied yet) — currently ONLY the owner-invite flow exists
-      (`/admin/organizations/new`). No way yet to invite a caretaker and link them to an
-      organization/buildings. Needed before the caretaker flow above can actually be used.
-- [ ] Owner flow: view bills, mark paid + mode, verify readings (photo review)
+- [ ] Run `supabase/caretaker_functions.sql`, `supabase/tenant_functions.sql`, AND
+      `supabase/owner_functions.sql` in the SQL Editor (none applied yet) —
+      currently ONLY the owner-invite flow exists (`/admin/organizations/new`). No
+      way yet to invite a caretaker and link them to an organization/buildings.
+      Needed before the caretaker flow can actually be used.
+- [ ] **Security gap found while building the owner bills flow, not yet fixed:**
+      `monthly_bills_org_scoped` (schema.sql) is a table-wide `for all` RLS policy
+      keyed only on `organization_id`, not on role. A caretaker (or owner) calling
+      `supabase.from('monthly_bills').update(...)` directly from the browser —
+      bypassing the app's server actions and the security-definer RPCs entirely —
+      can currently write `paid`/`mode`/`verified` (or `cer`) regardless of role.
+      The RPCs (`submit_meter_reading`, `owner_update_bill`) only produce correct
+      behavior when called through this app's own code; they don't prevent a
+      client from going around them. Real fix: revoke direct UPDATE/INSERT grants
+      on `monthly_bills` for the `authenticated` role and force all writes through
+      the security-definer functions. Not done here — didn't want to change RLS
+      blind with no way to runtime-test it from this sandbox.
 - [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
       process in parallel, has real lead time)
 - [ ] Deploy to Vercel

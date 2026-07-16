@@ -5,8 +5,14 @@ export default function OwnerDashboard() {
   return (
     <div className="mx-auto max-w-3xl p-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Your Buildings</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
         <div className="flex gap-3">
+          <Link
+            href="/owner/bills"
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            Bills
+          </Link>
           <Link
             href="/owner/buildings"
             className="text-sm text-gray-600 hover:text-gray-900"
@@ -26,9 +32,6 @@ export default function OwnerDashboard() {
           </form>
         </div>
       </div>
-      <p className="text-sm text-gray-500">
-        Bills view coming next — this month&apos;s flats, mark paid, verify readings.
-      </p>
     </div>
   );
 }
