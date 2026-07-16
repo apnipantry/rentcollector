@@ -164,6 +164,20 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       inviting real owners/caretakers, wire up a real SMTP provider (Resend,
       Postmark, SendGrid, etc.) under Supabase → Authentication → SMTP Settings
       — otherwise this will block onboarding again, not just testing.
+- [ ] **Caretaker login method — deliberately deferred, needs real owner input.**
+      Current invite flow (`/owner/caretakers/new`) requires an email, but many
+      caretakers won't have one — phone needs to be the primary login. Two
+      options with different cost, not decided yet:
+      1. Quick workaround, no new dependency: owner manually creates the
+         caretaker's Supabase Auth user with a synthetic email
+         (e.g. `9876543210@caretaker.local`) + a password set directly, tells
+         them the password out of band. Works today, but it's the owner
+         distributing passwords, not real phone login.
+      2. Proper phone/SMS OTP login: needs a real SMS provider (Twilio, MSG91,
+         etc.) wired into Supabase Auth — external account, likely a cost,
+         more setup, but the actual "log in with your phone number" experience.
+      Holding off until it's clear how actual owners want this to work, rather
+      than picking one blind. Don't build either without checking back first.
 - [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
       process in parallel, has real lead time)
 - [x] Deploy to Vercel — done
