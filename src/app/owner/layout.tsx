@@ -32,6 +32,8 @@ export default async function OwnerLayout({
           { href: "/owner", label: "Dashboard" },
           { href: "/owner/bills", label: "Bills" },
           { href: "/owner/buildings", label: "Buildings" },
+          { href: "/owner/flats", label: "Flats" },
+          { href: "/owner/tenants", label: "Tenants" },
           { href: "/owner/caretakers", label: "Caretakers" },
         ]}
       />
