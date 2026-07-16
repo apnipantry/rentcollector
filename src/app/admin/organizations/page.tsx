@@ -1,15 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import DataTable, { type Column } from "@/components/DataTable";
-
-interface OrgRow {
-  id: string;
-  name: string;
-  contact_phone: string | null;
-  created_at: string;
-  ownerName: string | null;
-  ownerPhone: string | null;
-}
+import OrganizationsTable, { type OrgRow } from "./OrganizationsTable";
 
 export default async function OrganizationsPage() {
   const supabase = await createClient();
@@ -42,33 +33,6 @@ export default async function OrganizationsPage() {
       };
     }) ?? [];
 
-  const columns: Column<OrgRow>[] = [
-    {
-      key: "name",
-      header: "Organization",
-      accessor: (r) => <span className="font-medium text-ink">{r.name}</span>,
-      sortValue: (r) => r.name.toLowerCase(),
-    },
-    {
-      key: "owner",
-      header: "Owner",
-      accessor: (r) =>
-        r.ownerName || <span className="text-ink-muted">No owner yet</span>,
-      sortValue: (r) => r.ownerName?.toLowerCase() ?? "",
-    },
-    {
-      key: "contact",
-      header: "Contact",
-      accessor: (r) => r.contact_phone || r.ownerPhone || "—",
-    },
-    {
-      key: "added",
-      header: "Added",
-      accessor: (r) => new Date(r.created_at).toLocaleDateString(),
-      sortValue: (r) => r.created_at,
-    },
-  ];
-
   return (
     <div className="mx-auto max-w-4xl p-8">
       <div className="mb-6 flex items-center justify-between">
@@ -81,13 +45,7 @@ export default async function OrganizationsPage() {
         </Link>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={rows}
-        searchAccessor={(r) => `${r.name} ${r.ownerName ?? ""}`}
-        searchPlaceholder="Search organizations or owners…"
-        emptyLabel="No building owners yet."
-      />
+      <OrganizationsTable rows={rows} />
     </div>
   );
 }

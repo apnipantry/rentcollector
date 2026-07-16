@@ -1,14 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import DataTable, { type Column } from "@/components/DataTable";
-
-interface BuildingRow {
-  id: string;
-  name: string;
-  electricity_rate: number;
-  garbage_fee: number;
-  flatCount: number;
-}
+import BuildingsTable, { type BuildingRow } from "./BuildingsTable";
 
 export default async function BuildingsPage() {
   const supabase = await createClient();
@@ -27,34 +19,6 @@ export default async function BuildingsPage() {
         (b.flats as unknown as { count: number }[])?.[0]?.count ?? 0,
     })) ?? [];
 
-  const columns: Column<BuildingRow>[] = [
-    {
-      key: "name",
-      header: "Building",
-      accessor: (r) => <span className="font-medium text-ink">{r.name}</span>,
-      sortValue: (r) => r.name.toLowerCase(),
-    },
-    {
-      key: "rate",
-      header: "Electricity",
-      accessor: (r) => `₹${r.electricity_rate}/unit`,
-      sortValue: (r) => r.electricity_rate,
-    },
-    {
-      key: "garbage",
-      header: "Garbage fee",
-      accessor: (r) => `₹${r.garbage_fee}`,
-      sortValue: (r) => r.garbage_fee,
-    },
-    {
-      key: "flats",
-      header: "Flats",
-      accessor: (r) => r.flatCount,
-      sortValue: (r) => r.flatCount,
-      align: "right",
-    },
-  ];
-
   return (
     <div className="mx-auto max-w-3xl p-8">
       <div className="mb-6 flex items-center justify-between">
@@ -67,14 +31,7 @@ export default async function BuildingsPage() {
         </Link>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={rows}
-        searchAccessor={(r) => r.name}
-        searchPlaceholder="Search buildings…"
-        rowHref={(r) => `/owner/buildings/${r.id}`}
-        emptyLabel="No buildings yet."
-      />
+      <BuildingsTable rows={rows} />
     </div>
   );
 }

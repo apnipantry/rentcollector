@@ -1,13 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import DataTable, { type Column } from "@/components/DataTable";
-
-interface FlatRow {
-  id: string;
-  room_no: string;
-  rent: number;
-  tenantName: string | null;
-}
+import FlatsTable, { type FlatRow } from "./FlatsTable";
 
 export default async function BuildingDetailPage({
   params,
@@ -46,31 +39,6 @@ export default async function BuildingDetailPage({
       };
     }) ?? [];
 
-  const columns: Column<FlatRow>[] = [
-    {
-      key: "room",
-      header: "Room",
-      accessor: (r) => (
-        <span className="font-medium text-ink">Room {r.room_no}</span>
-      ),
-      sortValue: (r) => r.room_no,
-    },
-    {
-      key: "tenant",
-      header: "Tenant",
-      accessor: (r) =>
-        r.tenantName || <span className="text-ink-muted">Vacant</span>,
-      sortValue: (r) => r.tenantName?.toLowerCase() ?? "",
-    },
-    {
-      key: "rent",
-      header: "Rent",
-      accessor: (r) => `₹${r.rent}`,
-      sortValue: (r) => r.rent,
-      align: "right",
-    },
-  ];
-
   return (
     <div className="mx-auto max-w-3xl p-8">
       <Link
@@ -95,15 +63,7 @@ export default async function BuildingDetailPage({
         </Link>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={rows}
-        searchAccessor={(r) => `${r.room_no} ${r.tenantName ?? ""}`}
-        searchPlaceholder="Search flats…"
-        rowHref={(r) => `/owner/flats/${r.id}`}
-        rowTone={(r) => (r.tenantName ? "default" : "amber")}
-        emptyLabel="No flats yet."
-      />
+      <FlatsTable rows={rows} />
     </div>
   );
 }

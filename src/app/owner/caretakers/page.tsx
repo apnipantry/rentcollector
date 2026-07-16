@@ -1,13 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import DataTable, { type Column } from "@/components/DataTable";
-
-interface CaretakerRow {
-  id: string;
-  full_name: string;
-  phone: string | null;
-  created_at: string;
-}
+import CaretakersTable, { type CaretakerRow } from "./CaretakersTable";
 
 export default async function CaretakersPage() {
   const supabase = await createClient();
@@ -18,28 +11,6 @@ export default async function CaretakersPage() {
     .order("created_at", { ascending: false });
 
   const rows: CaretakerRow[] = caretakers ?? [];
-
-  const columns: Column<CaretakerRow>[] = [
-    {
-      key: "name",
-      header: "Name",
-      accessor: (r) => (
-        <span className="font-medium text-ink">{r.full_name}</span>
-      ),
-      sortValue: (r) => r.full_name?.toLowerCase() ?? "",
-    },
-    {
-      key: "phone",
-      header: "Phone",
-      accessor: (r) => r.phone || "—",
-    },
-    {
-      key: "added",
-      header: "Added",
-      accessor: (r) => new Date(r.created_at).toLocaleDateString(),
-      sortValue: (r) => r.created_at,
-    },
-  ];
 
   return (
     <div className="mx-auto max-w-3xl p-8">
@@ -53,13 +24,7 @@ export default async function CaretakersPage() {
         </Link>
       </div>
 
-      <DataTable
-        columns={columns}
-        rows={rows}
-        searchAccessor={(r) => r.full_name ?? ""}
-        searchPlaceholder="Search caretakers…"
-        emptyLabel="No caretakers added yet."
-      />
+      <CaretakersTable rows={rows} />
     </div>
   );
 }
