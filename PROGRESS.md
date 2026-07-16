@@ -11,7 +11,7 @@ later). Full requirements/decisions log lives in project memory
 ## Stack
 Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
 
-## Status: scaffolding stage
+## Status: deployed, core owner/admin flows verified live; caretaker-side runtime testing still pending
 
 ### Done
 - [x] Next.js app scaffolded (`create-next-app`, TypeScript, Tailwind, App Router, `src/` dir)
@@ -51,8 +51,7 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       regardless of what the frontend sends (closes a gap where the raw table RLS
       policy would otherwise have allowed writing paid/mode/verified too since it's
       table-wide, not column-scoped). `actions.ts` now calls this RPC instead of a raw
-      `.update()`. **Not yet run in the SQL Editor** — schema.sql and
-      storage_and_functions.sql are applied, this one is not.
+      `.update()`.
 - [x] Verified: `npm run build` passes clean against real Supabase env vars (still can't
       runtime-test from this sandbox — supabase.co isn't on the sandbox's network
       allow-list — needs testing on Vercel or a local machine with real network access)
@@ -63,7 +62,6 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
 - [x] `supabase/tenant_functions.sql`: `replace_tenant()` — atomically deactivates the
       current tenant and inserts the new one, enforcing org ownership and role
       server-side (avoids the "flat briefly has 0 or 2 active tenants" race).
-      **Not yet run in the SQL Editor.**
 - [x] Building/flat/tenant management UI (owner-side):
       `/owner/buildings` (list + create), `/owner/buildings/[id]` (detail + flats list +
       add flat), `/owner/buildings/[id]/flats/new`, `/owner/flats/[id]` (detail, current +
@@ -114,8 +112,8 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       (CER + optional photo) on any bill with no submitted reading yet.
       `submit_meter_reading()` was caretaker/platform_admin only; extended the
       role check to include `owner` (`supabase/allow_owner_meter_reading.sql`,
-      also kept `caretaker_functions.sql` in sync as source of truth). **Not
-      yet run in the SQL Editor.**
+      also kept `caretaker_functions.sql` in sync as source of truth). Confirmed
+      run in the SQL Editor.
 
 - [x] Mobile-responsive pass on owner/admin screens: sidebar is now a slide-out
       drawer under the `sm` breakpoint (top bar + hamburger, backdrop-to-close,
@@ -124,24 +122,32 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       columns; page padding scales down (`p-4` mobile → `p-8` desktop). Only
       build/lint-checked, not visually verified on an actual phone.
 
+- [x] Show current-month bill status on `/owner/tenants` + inline mark-paid: a
+      "This month's payment" column shows total/paid/mode/verified as the same
+      editable inline form as `/owner/bills` `BillRow` (paid input, mode select,
+      verified checkbox, Save), joined per tenant by `flat_id`. Clicking the
+      form stops event propagation so it doesn't trigger the row's
+      navigate-to-flat click. `/owner/bills` also got a "Mark fully paid"
+      quick button next to the manual paid-amount field.
+- [x] Flat detail page (`/owner/flats/[id]`) now shows full bill history across
+      current + past tenants (`monthly_bills.tenant_id` already records which
+      tenant each bill belonged to, no date-range guessing needed), a
+      "Pending (all time)" stat summing unpaid difference across every bill for
+      the flat, and a "Due next month (fixed)" stat — rent + garbage fee only,
+      since electricity depends on a reading that hasn't happened yet and
+      isn't projected/faked.
+- [x] **RESOLVED — was listed here as a critical live bug:** `auth_org_id()` /
+      `auth_role()` needed `security definer` to avoid infinite recursion when
+      `profiles`' own RLS policy called them (see `supabase/fix_auth_helpers_recursion.sql`).
+      Fix was run in the SQL Editor and confirmed live — login and every
+      RLS-protected page (`/owner/buildings`, `/owner/bills`, etc.) work.
+- [x] Deploy to Vercel — done
+- [x] Runtime testing, core owner/admin flows — confirmed live: login (after the
+      RLS recursion fix), `/admin/organizations` (create org + owner), owner
+      building/flat/tenant CRUD, `/owner/bills` (mark paid, verify, owner-entered
+      readings), `/owner/tenants` bill editing, flat detail bill history.
+
 ### Not started yet
-- [ ] **CRITICAL, confirmed live during first login attempt:** `auth_org_id()` and
-      `auth_role()` in schema.sql were not `security definer`. Since policies on
-      `profiles` call these functions, and these functions query `profiles`,
-      evaluating the policy re-triggers itself — infinite recursion — on every
-      direct `.from(table).select()` through the browser-session client on ANY
-      RLS-protected table, not just `profiles`. This is why login failed with
-      `no-profile`: the `profiles` select errored, the error was silently
-      swallowed, and it fell through to the no-profile branch. It also means
-      `/owner/buildings`, `/owner/bills`, `/owner/flats/[id]`, and the caretaker
-      bill listing were all silently broken too — none of them go through the
-      security-definer RPCs, which is the only reason the RPCs themselves
-      (`submit_meter_reading`, `owner_update_bill`, `replace_tenant`,
-      `ensure_monthly_bills`) never hit this. **Fix written:**
-      `supabase/fix_auth_helpers_recursion.sql` marks both functions security
-      definer with a fixed search_path (also fixed in schema.sql for anyone
-      reading it fresh). **Not yet run in the SQL Editor — do this first,
-      before anything else, then retry login.**
 - [ ] **Security gap found while building the owner bills flow, not yet fixed:**
       `monthly_bills_org_scoped` (schema.sql) is a table-wide `for all` RLS policy
       keyed only on `organization_id`, not on role. A caretaker (or owner) calling
@@ -187,9 +193,10 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       than picking one blind. Don't build either without checking back first.
 - [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
       process in parallel, has real lead time)
-- [x] Deploy to Vercel — done
-- [ ] Runtime testing end-to-end (in progress — hit the platform_admin bootstrap gap
-      above on first login attempt; not yet completed)
+- [ ] Runtime testing, caretaker side — NOT yet confirmed end-to-end. Caretaker
+      invite → caretaker login → submit reading → shows up correctly on
+      owner's `/owner/bills` has not been walked through live, partly because
+      the caretaker login method itself is still an open question (see above).
 
 ## Open decisions still pending (not blockers, but unresolved)
 - WhatsApp sending identity: per-org Meta account vs one shared branded number — schema
