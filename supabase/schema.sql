@@ -130,13 +130,22 @@ alter table tenants enable row level security;
 alter table monthly_bills enable row level security;
 
 -- Helper: current user's organization_id and role
+-- SECURITY DEFINER is required here: these functions query `profiles`, and
+-- policies on `profiles` call these functions. Without security definer,
+-- evaluating the policy re-triggers the policy via these functions ->
+-- infinite recursion. Safe because both are hardcoded to auth.uid() (the
+-- caller's own id), so a definer-privileged lookup can't leak other rows.
 create or replace function auth_org_id() returns uuid
-language sql stable as $$
+language sql stable security definer
+set search_path = public
+as $$
   select organization_id from profiles where id = auth.uid()
 $$;
 
 create or replace function auth_role() returns user_role
-language sql stable as $$
+language sql stable security definer
+set search_path = public
+as $$
   select role from profiles where id = auth.uid()
 $$;
 

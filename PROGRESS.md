@@ -90,6 +90,23 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       owner mark-paid/verify should now be usable end to end on a real deployment.
 
 ### Not started yet
+- [ ] **CRITICAL, confirmed live during first login attempt:** `auth_org_id()` and
+      `auth_role()` in schema.sql were not `security definer`. Since policies on
+      `profiles` call these functions, and these functions query `profiles`,
+      evaluating the policy re-triggers itself — infinite recursion — on every
+      direct `.from(table).select()` through the browser-session client on ANY
+      RLS-protected table, not just `profiles`. This is why login failed with
+      `no-profile`: the `profiles` select errored, the error was silently
+      swallowed, and it fell through to the no-profile branch. It also means
+      `/owner/buildings`, `/owner/bills`, `/owner/flats/[id]`, and the caretaker
+      bill listing were all silently broken too — none of them go through the
+      security-definer RPCs, which is the only reason the RPCs themselves
+      (`submit_meter_reading`, `owner_update_bill`, `replace_tenant`,
+      `ensure_monthly_bills`) never hit this. **Fix written:**
+      `supabase/fix_auth_helpers_recursion.sql` marks both functions security
+      definer with a fixed search_path (also fixed in schema.sql for anyone
+      reading it fresh). **Not yet run in the SQL Editor — do this first,
+      before anything else, then retry login.**
 - [ ] **Security gap found while building the owner bills flow, not yet fixed:**
       `monthly_bills_org_scoped` (schema.sql) is a table-wide `for all` RLS policy
       keyed only on `organization_id`, not on role. A caretaker (or owner) calling
