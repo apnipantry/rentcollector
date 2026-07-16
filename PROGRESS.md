@@ -130,6 +130,12 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       in the SQL Editor. Worth a proper fix later — e.g. a one-time seed script or
       a documented manual step in a SETUP.md — so this isn't rediscovered per
       deployment.
+- [ ] **Supabase's default email provider hit its rate limit during testing**
+      (a handful of emails/hour, not meant for production). Every invite flow
+      (`inviteUserByEmail` for owners and caretakers) depends on it. Before
+      inviting real owners/caretakers, wire up a real SMTP provider (Resend,
+      Postmark, SendGrid, etc.) under Supabase → Authentication → SMTP Settings
+      — otherwise this will block onboarding again, not just testing.
 - [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
       process in parallel, has real lead time)
 - [x] Deploy to Vercel — done
