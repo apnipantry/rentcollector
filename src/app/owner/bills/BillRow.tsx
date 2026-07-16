@@ -230,6 +230,30 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
           {isPending ? "Saving…" : "Save"}
         </button>
 
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => {
+            setPaid(String(bill.total));
+            setError(null);
+            const formData = new FormData();
+            formData.set("billId", bill.id);
+            formData.set("paid", String(bill.total));
+            formData.set("mode", mode);
+            formData.set("verified", verified ? "on" : "");
+            startTransition(async () => {
+              try {
+                await updateBillPayment(formData);
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "Something went wrong");
+              }
+            });
+          }}
+          className="rounded border border-ink px-3 py-2 text-sm font-medium text-ink hover:bg-paper disabled:opacity-50"
+        >
+          Mark fully paid
+        </button>
+
         <p className="ml-auto text-xs text-ink-muted">
           Difference:{" "}
           <span
