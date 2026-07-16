@@ -78,17 +78,18 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       (`src/app/owner/bills/page.tsx`, `BillRow.tsx`, `actions.ts`, `utils.ts`)
 - [x] `supabase/owner_functions.sql`: `owner_update_bill()` — column-scopes owner
       writes to paid/mode/verified only, same pattern as `submit_meter_reading()`.
-      **Not yet run in the SQL Editor.** See the security note inside that file:
-      this does NOT by itself close the write-bypass gap described below, since
-      `monthly_bills_org_scoped` in schema.sql permits raw table writes to any
-      column for any org member regardless of role.
+      See the security note inside that file: this does NOT by itself close the
+      write-bypass gap described below, since `monthly_bills_org_scoped` in
+      schema.sql permits raw table writes to any column for any org member
+      regardless of role.
+
+- [x] `supabase/caretaker_functions.sql`, `supabase/tenant_functions.sql`, and
+      `supabase/owner_functions.sql` all run in the SQL Editor (per user
+      confirmation — not independently verified from this sandbox, no network
+      path to supabase.co here). Caretaker invite → caretaker flow →
+      owner mark-paid/verify should now be usable end to end on a real deployment.
 
 ### Not started yet
-- [ ] Run `supabase/caretaker_functions.sql`, `supabase/tenant_functions.sql`, AND
-      `supabase/owner_functions.sql` in the SQL Editor (none applied yet) —
-      currently ONLY the owner-invite flow exists (`/admin/organizations/new`). No
-      way yet to invite a caretaker and link them to an organization/buildings.
-      Needed before the caretaker flow can actually be used.
 - [ ] **Security gap found while building the owner bills flow, not yet fixed:**
       `monthly_bills_org_scoped` (schema.sql) is a table-wide `for all` RLS policy
       keyed only on `organization_id`, not on role. A caretaker (or owner) calling
