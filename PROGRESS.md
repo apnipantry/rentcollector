@@ -109,6 +109,14 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       (`OrganizationsTable`, `BuildingsTable`, `CaretakersTable`, `FlatsTable`)
       that takes only plain row data from its server-component parent.
 
+- [x] Owner can now enter a meter reading directly (not just view/mark-paid on
+      what a caretaker submitted) — `/owner/bills` shows a "Save reading" form
+      (CER + optional photo) on any bill with no submitted reading yet.
+      `submit_meter_reading()` was caretaker/platform_admin only; extended the
+      role check to include `owner` (`supabase/allow_owner_meter_reading.sql`,
+      also kept `caretaker_functions.sql` in sync as source of truth). **Not
+      yet run in the SQL Editor.**
+
 ### Not started yet
 - [ ] **CRITICAL, confirmed live during first login attempt:** `auth_org_id()` and
       `auth_role()` in schema.sql were not `security definer`. Since policies on

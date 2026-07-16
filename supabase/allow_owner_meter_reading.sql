@@ -1,9 +1,8 @@
--- Run this AFTER schema.sql and storage_and_functions.sql.
-
--- Restricts writes to exactly the fields a caretaker should be able to touch:
--- cer, meter_photo_url, reading_submitted_at. Nothing about payment or
--- verification can be changed through this path, regardless of what the
--- calling UI sends — this is enforced here, not just in the frontend.
+-- Run this in the SQL Editor. Extends submit_meter_reading() to also allow
+-- 'owner' (previously caretaker/platform_admin only) — owners need to be able
+-- to record a reading themselves (e.g. caretaker unavailable, or an owner
+-- who does their own rounds). Same column-scoped restriction applies:
+-- still only cer/photo/reading_submitted_at, nothing about payment.
 create or replace function submit_meter_reading(
   p_flat_id uuid,
   p_billing_month date,

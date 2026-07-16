@@ -25,7 +25,7 @@ export default async function OwnerBillsPage({
     .from("monthly_bills")
     .select(
       `
-      id, ler, cer, ec, rent, garbage, previous, total, paid, mode,
+      id, flat_id, billing_month, ler, cer, ec, rent, garbage, previous, total, paid, mode,
       difference, verified, reading_submitted_at, meter_photo_url,
       flats ( room_no, buildings ( name ) ),
       tenants ( name )

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateBillPayment } from "./actions";
+import { updateBillPayment, submitOwnerReading } from "./actions";
 
 export interface OwnerBill {
   id: string;
+  flat_id: string;
+  billing_month: string;
   ler: number | null;
   cer: number | null;
   ec: number;
@@ -29,6 +31,9 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
   const [mode, setMode] = useState(bill.mode ?? "");
   const [verified, setVerified] = useState(bill.verified);
 
+  const [isReadingPending, startReadingTransition] = useTransition();
+  const [readingError, setReadingError] = useState<string | null>(null);
+
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
@@ -40,17 +45,27 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
     });
   }
 
+  function handleReadingSubmit(formData: FormData) {
+    setReadingError(null);
+    startReadingTransition(async () => {
+      try {
+        await submitOwnerReading(formData);
+      } catch (e) {
+        setReadingError(
+          e instanceof Error ? e.message : "Something went wrong"
+        );
+      }
+    });
+  }
+
   const settled = bill.difference <= 0 && bill.reading_submitted_at;
 
   return (
-    <form
-      action={handleSubmit}
+    <div
       className={`rounded-lg border p-4 ${
         settled ? "border-line" : "border-amber bg-amber-soft"
       }`}
     >
-      <input type="hidden" name="billId" value={bill.id} />
-
       <div className="mb-3 flex items-start justify-between">
         <div>
           <p className="font-medium text-ink">
@@ -108,13 +123,69 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
         </a>
       )}
 
+      {!bill.reading_submitted_at && (
+        <form
+          action={handleReadingSubmit}
+          className="mb-3 rounded border border-line bg-surface p-3"
+        >
+          <input type="hidden" name="flatId" value={bill.flat_id} />
+          <input
+            type="hidden"
+            name="billingMonth"
+            value={bill.billing_month}
+          />
+          <p className="mb-2 text-xs font-medium text-ink-muted">
+            Enter reading yourself
+          </p>
+          {readingError && (
+            <p className="mb-2 rounded bg-red-soft px-3 py-2 text-xs text-red">
+              {readingError}
+            </p>
+          )}
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="block text-xs text-ink-muted">
+                Current reading
+              </label>
+              <input
+                type="number"
+                name="cer"
+                step="0.01"
+                required
+                className="mt-1 w-28 rounded border border-line px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-ink-muted">
+                Meter photo (optional)
+              </label>
+              <input
+                type="file"
+                name="photo"
+                accept="image/*"
+                capture="environment"
+                className="mt-1 text-xs"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isReadingPending}
+              className="rounded border border-ink px-4 py-2 text-sm font-medium text-ink hover:bg-paper disabled:opacity-50"
+            >
+              {isReadingPending ? "Saving…" : "Save reading"}
+            </button>
+          </div>
+        </form>
+      )}
+
       {error && (
         <p className="mb-3 rounded bg-red-soft px-3 py-2 text-xs text-red">
           {error}
         </p>
       )}
 
-      <div className="flex flex-wrap items-end gap-3">
+      <form action={handleSubmit} className="flex flex-wrap items-end gap-3">
+        <input type="hidden" name="billId" value={bill.id} />
         <div>
           <label className="block text-xs text-ink-muted">Paid</label>
           <input
@@ -169,7 +240,7 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
             ₹{bill.difference}
           </span>
         </p>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }
