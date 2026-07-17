@@ -147,19 +147,25 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       building/flat/tenant CRUD, `/owner/bills` (mark paid, verify, owner-entered
       readings), `/owner/tenants` bill editing, flat detail bill history.
 
+### Done (cont.)
+- [x] **Security gap fix written — `supabase/revoke_direct_writes.sql`, NOT yet
+      run in the SQL Editor.** `monthly_bills_org_scoped` (schema.sql) is a
+      table-wide `for all` RLS policy keyed only on `organization_id`, not role,
+      so a caretaker (or owner) calling `supabase.from('monthly_bills').update(...)`
+      directly from the browser could bypass the app's server actions and the
+      security-definer RPCs entirely and write `paid`/`mode`/`verified`/`cer`
+      regardless of role. Fix: `revoke insert, update, delete on monthly_bills
+      from authenticated` — the RPCs (`ensure_monthly_bills`, `submit_meter_reading`,
+      `owner_update_bill`) are all `security definer` so they're unaffected and
+      become the only write path. Confirmed before writing this that every raw
+      `.from("monthly_bills")` call in `src/` (caretaker/page.tsx,
+      owner/bills/page.tsx, owner/flats/[id]/page.tsx, owner/page.tsx,
+      owner/tenants/page.tsx) is a `.select()`, not a write, so the app itself
+      shouldn't break. **Still needs**: running the SQL in the SQL Editor, then
+      the three-step manual test in the file's comments (owner mark-paid,
+      caretaker submit, raw-update-should-now-fail).
+
 ### Not started yet
-- [ ] **Security gap found while building the owner bills flow, not yet fixed:**
-      `monthly_bills_org_scoped` (schema.sql) is a table-wide `for all` RLS policy
-      keyed only on `organization_id`, not on role. A caretaker (or owner) calling
-      `supabase.from('monthly_bills').update(...)` directly from the browser —
-      bypassing the app's server actions and the security-definer RPCs entirely —
-      can currently write `paid`/`mode`/`verified` (or `cer`) regardless of role.
-      The RPCs (`submit_meter_reading`, `owner_update_bill`) only produce correct
-      behavior when called through this app's own code; they don't prevent a
-      client from going around them. Real fix: revoke direct UPDATE/INSERT grants
-      on `monthly_bills` for the `authenticated` role and force all writes through
-      the security-definer functions. Not done here — didn't want to change RLS
-      blind with no way to runtime-test it from this sandbox.
 - [ ] **No bootstrap path for the first platform_admin.** Every role after it is
       created via an invite chain (admin invites owner, owner invites caretaker),
       but nothing creates the first admin — confirmed live: signing in with a
