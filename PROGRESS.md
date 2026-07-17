@@ -187,6 +187,18 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       other `supabase/*.sql` files) and **not yet tested against a real
       owner's Excel sheet** — see below.
 
+- [x] `supabase/bootstrap_admin.sql`: one-time `bootstrap_platform_admin(uuid, text)`
+      function closing the "no bootstrap path for the first platform_admin" gap
+      (every other role is created via an invite chain that requires an existing
+      admin, so nothing could create the first one). Self-locking — only runs
+      while zero `platform_admin` profiles exist, so it can't be replayed to mint
+      extra admins later, and it's deliberately not granted to `authenticated`
+      (SQL Editor / service-role only, never callable from the app). Usage:
+      create the auth user by hand in the Supabase dashboard, then run
+      `select bootstrap_platform_admin('<uuid>', 'Name')` in the SQL Editor.
+      **Written but not yet run against the live project** — needs the same
+      SQL-Editor step as the other `supabase/*.sql` files, then a login test.
+
 ### Not started yet
 - [ ] **Sanity-check the bulk import template's column layout against the
       actual Excel sheet the friend/owner has been using.** The template
@@ -196,17 +208,6 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       units, date formats, or the mental model of "one row per flat" might
       not match how the owner's actual sheet is laid out. Worth walking
       through their real file before assuming the template is usable as-is.
-- [ ] **No bootstrap path for the first platform_admin.** Every role after it is
-      created via an invite chain (admin invites owner, owner invites caretaker),
-      but nothing creates the first admin — confirmed live: signing in with a
-      manually-created Supabase Auth user hit `no-profile` / "No role assigned to
-      this account yet" because `login/actions.ts` looks up a `profiles` row that
-      doesn't exist until one is inserted by hand. Current workaround: create the
-      auth user in the Supabase dashboard, then manually
-      `insert into profiles (id, role, full_name) values ('<uid>', 'platform_admin', '...')`
-      in the SQL Editor. Worth a proper fix later — e.g. a one-time seed script or
-      a documented manual step in a SETUP.md — so this isn't rediscovered per
-      deployment.
 - [ ] **Supabase's default email provider hit its rate limit during testing**
       (a handful of emails/hour, not meant for production). Every invite flow
       (`inviteUserByEmail` for owners and caretakers) depends on it. Before
