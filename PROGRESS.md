@@ -191,8 +191,44 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
          more setup, but the actual "log in with your phone number" experience.
       Holding off until it's clear how actual owners want this to work, rather
       than picking one blind. Don't build either without checking back first.
-- [ ] WhatsApp Cloud API integration (blocked on Meta business verification — start that
-      process in parallel, has real lead time)
+- [ ] **WhatsApp caretaker bot — design decided, not yet built, blocked on Meta.**
+      Explored and decided (not just the generic integration item below):
+      - Scope: WhatsApp is the caretaker's *primary* channel, web login (`/caretaker`)
+        stays as fallback — not a replacement. This effectively also answers the
+        deferred "caretaker login method" item below: on WhatsApp, the caretaker's
+        phone number *is* their identity, no password/OTP needed for that channel.
+      - Flow: monthly cron sends a template-message reminder to the caretaker
+        responsible for a flat → caretaker replies → bot sends an interactive list
+        of their pending flats → caretaker picks one → bot asks for CER → asks for
+        a photo → bot downloads the photo from Meta's Graph API and re-uploads it
+        to the existing org-scoped storage bucket → saves the reading → sends a
+        template message to the **owner** with the reading + photo → owner replies
+        to confirm payment (mark paid), same fields as `/owner/bills`.
+      - Reusable as-is: storage bucket/path convention, `/owner/bills` review screen.
+      - New work required: webhook endpoint (signature verification, message
+        routing), a conversation-state table (WhatsApp is stateless message-by-
+        message — need to track which flat/step a phone number is mid-flow on),
+        interactive list/menu message formatting, media download-then-reupload.
+      - **Two gaps this surfaced, both need resolving before/while building:**
+        1. No caretaker↔building assignment exists in the schema. The web app lets
+           any caretaker in an org act on any flat in that org, which is fine for a
+           manual list, but a monthly reminder needs to know exactly which
+           caretaker to message for exactly which flat. Needs something like
+           `buildings.caretaker_id` (or a join table if a building can have more
+           than one caretaker) — not designed yet.
+        2. Auth mechanics: `submit_meter_reading()` / `owner_update_bill()` check
+           `auth.uid()`, which doesn't exist for a webhook with no Supabase
+           session. Plan is phone-number-keyed variants of these RPCs (look the
+           caller up by phone instead of auth.uid(), same column/role
+           restrictions) rather than a loose RLS-bypass in app code.
+      - **Meta approval requirements, now larger than previously scoped:** business
+        verification (already blocking, in progress) PLUS two separate approved
+        message templates (caretaker reminder, owner confirmation) — template
+        review has its own lead time and can bounce on first submission, worth
+        submitting in parallel with business verification rather than after.
+      - Not started: could scaffold the schema change, conversation-state table,
+        and webhook skeleton (signature verification, routing) now since none of
+        that depends on Meta approval — holding until told to proceed.
 - [ ] Runtime testing, caretaker side — NOT yet confirmed end-to-end. Caretaker
       invite → caretaker login → submit reading → shows up correctly on
       owner's `/owner/bills` has not been walked through live, partly because
