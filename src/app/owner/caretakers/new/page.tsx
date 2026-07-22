@@ -6,7 +6,7 @@ export default async function NewCaretakerPage({
   searchParams: Promise<{ error?: string; method?: string }>;
 }) {
   const params = await searchParams;
-  const method = params.method === "phone" ? "phone" : "email";
+  const method = params.method === "email" ? "email" : "phone";
 
   return (
     <div className="mx-auto max-w-lg p-6">
