@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import DataTable, { type Column } from "@/components/DataTable";
+import { deleteBuilding } from "./actions";
 
 export interface BuildingRow {
   id: string;
@@ -8,6 +10,35 @@ export interface BuildingRow {
   electricity_rate: number;
   garbage_fee: number;
   flatCount: number;
+}
+
+function DeleteBuildingCell({ id }: { id: string }) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => {
+          if (!confirm("Delete this building? This cannot be undone.")) return;
+          setError(null);
+          startTransition(async () => {
+            try {
+              await deleteBuilding(id);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to delete");
+            }
+          });
+        }}
+        className="rounded border border-red px-2 py-1 text-xs font-medium text-red hover:bg-red-soft disabled:opacity-50"
+      >
+        {isPending ? "…" : "Delete"}
+      </button>
+      {error && <p className="mt-1 text-[10px] text-red">{error}</p>}
+    </div>
+  );
 }
 
 export default function BuildingsTable({ rows }: { rows: BuildingRow[] }) {
@@ -36,6 +67,11 @@ export default function BuildingsTable({ rows }: { rows: BuildingRow[] }) {
       accessor: (r) => r.flatCount,
       sortValue: (r) => r.flatCount,
       align: "right",
+    },
+    {
+      key: "actions",
+      header: "",
+      accessor: (r) => <DeleteBuildingCell id={r.id} />,
     },
   ];
 

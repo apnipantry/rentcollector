@@ -3,17 +3,30 @@ import Link from "next/link";
 import TenantsListTable, { type TenantListRow } from "./TenantsListTable";
 import { currentBillingMonth } from "@/app/owner/bills/utils";
 
-export default async function TenantsPage() {
+export default async function TenantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
+  const { archived } = await searchParams;
+  const showArchived = archived === "1";
+
   const supabase = await createClient();
   const billingMonth = currentBillingMonth();
 
-  const { data: tenants } = await supabase
+  let query = supabase
     .from("tenants")
     .select(
       "id, name, phone, is_active, flat_id, flats(room_no, buildings(name))"
     )
     .order("is_active", { ascending: false })
     .order("name");
+
+  if (!showArchived) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data: tenants } = await query;
 
   const flatIds = tenants?.map((t) => t.flat_id) ?? [];
   const { data: bills } = flatIds.length
@@ -54,12 +67,20 @@ export default async function TenantsPage() {
     <div className="mx-auto max-w-4xl p-4 sm:p-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-ink">Tenants</h1>
-        <Link
-          href="/owner/tenants/new"
-          className="rounded bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-ink/90"
-        >
-          + Add Tenant
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={showArchived ? "/owner/tenants" : "/owner/tenants?archived=1"}
+            className="text-xs text-ink-muted hover:text-ink"
+          >
+            {showArchived ? "Hide moved-out" : "Show moved-out"}
+          </Link>
+          <Link
+            href="/owner/tenants/new"
+            className="rounded bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-ink/90"
+          >
+            + Add Tenant
+          </Link>
+        </div>
       </div>
 
       <TenantsListTable rows={rows} />

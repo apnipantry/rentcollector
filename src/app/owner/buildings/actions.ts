@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 async function requireOwnerOrgId(): Promise<string> {
   const supabase = await createClient();
@@ -106,4 +107,33 @@ export async function replaceTenant(formData: FormData) {
   }
 
   redirect(`/owner/flats/${flatId}`);
+}
+
+export async function deleteBuilding(buildingId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("owner_delete_building", {
+    p_building_id: buildingId,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/owner/buildings");
+}
+
+export async function deleteFlat(flatId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("owner_delete_flat", {
+    p_flat_id: flatId,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/owner/buildings");
+  revalidatePath("/owner/flats");
+}
+
+export async function deleteTenant(tenantId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("owner_delete_tenant", {
+    p_tenant_id: tenantId,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/owner/tenants");
+  revalidatePath("/owner/flats");
 }

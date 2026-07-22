@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateBillPayment, submitOwnerReading } from "./actions";
+import { updateBillPayment, submitOwnerReading, deleteBill } from "./actions";
 
 export interface OwnerBill {
   id: string;
@@ -33,6 +33,23 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
 
   const [isReadingPending, startReadingTransition] = useTransition();
   const [readingError, setReadingError] = useState<string | null>(null);
+
+  const [isDeletePending, startDeleteTransition] = useTransition();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const deletable = bill.paid === 0 && !bill.verified;
+
+  function handleDelete() {
+    if (!confirm("Delete this bill? This cannot be undone.")) return;
+    setDeleteError(null);
+    startDeleteTransition(async () => {
+      try {
+        await deleteBill(bill.id);
+      } catch (e) {
+        setDeleteError(e instanceof Error ? e.message : "Failed to delete");
+      }
+    });
+  }
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -264,7 +281,21 @@ export default function BillRow({ bill }: { bill: OwnerBill }) {
             ₹{bill.difference}
           </span>
         </p>
+
+        {deletable && (
+          <button
+            type="button"
+            disabled={isDeletePending}
+            onClick={handleDelete}
+            className="rounded border border-red px-3 py-2 text-xs font-medium text-red hover:bg-red-soft disabled:opacity-50"
+          >
+            {isDeletePending ? "…" : "Delete bill"}
+          </button>
+        )}
       </form>
+      {deleteError && (
+        <p className="mt-2 text-xs text-red">{deleteError}</p>
+      )}
     </div>
   );
 }

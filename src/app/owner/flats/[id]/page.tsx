@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import StatCard from "@/components/StatCard";
 import BillHistoryTable, { type BillHistoryRow } from "./BillHistoryTable";
+import TenantDeleteButton from "./TenantDeleteButton";
 import { currentBillingMonth, shiftMonth, monthLabel } from "@/app/owner/bills/utils";
 
 export default async function FlatDetailPage({
@@ -109,18 +110,21 @@ export default async function FlatDetailPage({
           Current tenant
         </p>
         {activeTenant ? (
-          <>
-            <p className="text-sm font-medium text-ink">
-              {activeTenant.name}
-            </p>
-            <p className="text-xs text-ink-muted">{activeTenant.phone}</p>
-            {activeTenant.move_in_date && (
-              <p className="text-xs text-ink-muted">
-                Since{" "}
-                {new Date(activeTenant.move_in_date).toLocaleDateString()}
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-ink">
+                {activeTenant.name}
               </p>
-            )}
-          </>
+              <p className="text-xs text-ink-muted">{activeTenant.phone}</p>
+              {activeTenant.move_in_date && (
+                <p className="text-xs text-ink-muted">
+                  Since{" "}
+                  {new Date(activeTenant.move_in_date).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+            <TenantDeleteButton tenantId={activeTenant.id} />
+          </div>
         ) : (
           <p className="text-sm text-ink-muted">Vacant</p>
         )}
@@ -135,9 +139,12 @@ export default async function FlatDetailPage({
             {pastTenants.map((t) => (
               <div
                 key={t.id}
-                className="rounded border border-line bg-paper px-3 py-2 text-xs text-ink-muted"
+                className="flex items-center justify-between gap-3 rounded border border-line bg-paper px-3 py-2 text-xs text-ink-muted"
               >
-                {t.name} · {t.phone}
+                <span>
+                  {t.name} · {t.phone}
+                </span>
+                <TenantDeleteButton tenantId={t.id} />
               </div>
             ))}
           </div>

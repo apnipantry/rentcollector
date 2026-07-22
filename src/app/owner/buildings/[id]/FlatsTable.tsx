@@ -1,12 +1,43 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import DataTable, { type Column } from "@/components/DataTable";
+import { deleteFlat } from "@/app/owner/buildings/actions";
 
 export interface FlatRow {
   id: string;
   room_no: string;
   rent: number;
   tenantName: string | null;
+}
+
+function DeleteFlatCell({ id }: { id: string }) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => {
+          if (!confirm("Delete this flat? This cannot be undone.")) return;
+          setError(null);
+          startTransition(async () => {
+            try {
+              await deleteFlat(id);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to delete");
+            }
+          });
+        }}
+        className="rounded border border-red px-2 py-1 text-xs font-medium text-red hover:bg-red-soft disabled:opacity-50"
+      >
+        {isPending ? "…" : "Delete"}
+      </button>
+      {error && <p className="mt-1 text-[10px] text-red">{error}</p>}
+    </div>
+  );
 }
 
 export default function FlatsTable({ rows }: { rows: FlatRow[] }) {
@@ -32,6 +63,11 @@ export default function FlatsTable({ rows }: { rows: FlatRow[] }) {
       accessor: (r) => `₹${r.rent}`,
       sortValue: (r) => r.rent,
       align: "right",
+    },
+    {
+      key: "actions",
+      header: "",
+      accessor: (r) => <DeleteFlatCell id={r.id} />,
     },
   ];
 

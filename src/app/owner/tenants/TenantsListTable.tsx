@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import DataTable, { type Column } from "@/components/DataTable";
 import { updateBillPayment } from "@/app/owner/bills/actions";
+import { deleteTenant } from "@/app/owner/buildings/actions";
 
 export interface TenantListRow {
   id: string;
@@ -95,6 +96,35 @@ function TenantBillCell({ row }: { row: TenantListRow }) {
   );
 }
 
+function DeleteTenantCell({ id }: { id: string }) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => {
+          if (!confirm("Delete this tenant record? This cannot be undone.")) return;
+          setError(null);
+          startTransition(async () => {
+            try {
+              await deleteTenant(id);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Failed to delete");
+            }
+          });
+        }}
+        className="rounded border border-red px-2 py-1 text-xs font-medium text-red hover:bg-red-soft disabled:opacity-50"
+      >
+        {isPending ? "…" : "Delete"}
+      </button>
+      {error && <p className="mt-1 w-24 text-[10px] text-red">{error}</p>}
+    </div>
+  );
+}
+
 export default function TenantsListTable({ rows }: { rows: TenantListRow[] }) {
   const columns: Column<TenantListRow>[] = [
     {
@@ -129,6 +159,11 @@ export default function TenantsListTable({ rows }: { rows: TenantListRow[] }) {
       key: "bill",
       header: "This month's payment",
       accessor: (r) => <TenantBillCell row={r} />,
+    },
+    {
+      key: "actions",
+      header: "",
+      accessor: (r) => <DeleteTenantCell id={r.id} />,
     },
   ];
 

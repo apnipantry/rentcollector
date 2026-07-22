@@ -89,3 +89,15 @@ export async function updateBillPayment(formData: FormData) {
 
   revalidatePath("/owner/bills");
 }
+
+export async function deleteBill(billId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("owner_delete_bill", {
+    p_bill_id: billId,
+  });
+  if (error) {
+    throw new Error(error.message);
+  }
+  revalidatePath("/owner/bills");
+  revalidatePath("/owner/tenants");
+}
