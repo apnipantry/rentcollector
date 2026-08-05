@@ -9,6 +9,12 @@ if ! docker ps --format '{{.Names}}' | grep -qx "$DB_CONTAINER"; then
   exit 1
 fi
 
+if docker exec -i "$DB_CONTAINER" psql -U postgres -tAc \
+  "select to_regclass('public.organizations') is not null;" \
+  | grep -qx t; then
+  exit 0
+fi
+
 apply() {
   docker exec -i "$DB_CONTAINER" psql -U postgres -v ON_ERROR_STOP=1 "$@"
 }
