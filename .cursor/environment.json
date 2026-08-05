@@ -2,5 +2,5 @@
   "name": "RentCollector",
   "install": "npm ci",
   "start": "bash .cursor/scripts/start-dev.sh",
-  "ports": [3000]
+  "ports": [{ "port": 3000, "name": "next" }]
 }
