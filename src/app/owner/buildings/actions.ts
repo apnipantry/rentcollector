@@ -136,4 +136,5 @@ export async function deleteTenant(tenantId: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/owner/tenants");
   revalidatePath("/owner/flats");
+  revalidatePath("/owner/buildings");
 }
