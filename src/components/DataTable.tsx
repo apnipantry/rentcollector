@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 export interface Column<T> {
   key: string;
@@ -16,6 +16,7 @@ export default function DataTable<T extends { id: string }>({
   searchPlaceholder = "Search…",
   searchAccessor,
   rowHref,
+  rowExpand,
   rowTone,
   emptyLabel = "Nothing here yet.",
 }: {
@@ -24,12 +25,14 @@ export default function DataTable<T extends { id: string }>({
   searchPlaceholder?: string;
   searchAccessor?: (row: T) => string;
   rowHref?: (row: T) => string;
+  rowExpand?: (row: T) => React.ReactNode;
   rowTone?: (row: T) => "default" | "amber" | "red" | "accent";
   emptyLabel?: string;
 }) {
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!query || !searchAccessor) return rows;
@@ -131,20 +134,37 @@ export default function DataTable<T extends { id: string }>({
               </>
             );
             const rowClass = `border-t border-line border-l-2 ${toneBorder[tone]}`;
-            return rowHref ? (
-              <tr
-                key={row.id}
-                className={`${rowClass} cursor-pointer hover:bg-paper/60`}
-                onClick={() => {
-                  window.location.href = rowHref(row);
-                }}
-              >
-                {content}
-              </tr>
-            ) : (
-              <tr key={row.id} className={rowClass}>
-                {content}
-              </tr>
+            const expanded = rowExpand && expandedId === row.id;
+            const clickable = Boolean(rowHref || rowExpand);
+            return (
+              <Fragment key={row.id}>
+                <tr
+                  className={`${rowClass} ${
+                    clickable ? "cursor-pointer hover:bg-paper/60" : ""
+                  }`}
+                  onClick={
+                    rowExpand
+                      ? () =>
+                          setExpandedId((id) =>
+                            id === row.id ? null : row.id
+                          )
+                      : rowHref
+                        ? () => {
+                            window.location.href = rowHref(row);
+                          }
+                        : undefined
+                  }
+                >
+                  {content}
+                </tr>
+                {expanded && (
+                  <tr className="border-t border-line bg-paper/50">
+                    <td colSpan={columns.length} className="px-4 py-3">
+                      {rowExpand(row)}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             );
           })}
           {!sorted.length && (

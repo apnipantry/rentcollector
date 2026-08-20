@@ -199,6 +199,12 @@ Next.js (TS, App Router, Tailwind) + Supabase (Postgres/Auth/Storage) + Vercel.
       **Written but not yet run against the live project** — needs the same
       SQL-Editor step as the other `supabase/*.sql` files, then a login test.
 
+- [x] Building-scoped tenant roster: `/owner/tenants` is tabbed by building
+      (all tenants of the selected building on one page, vacant rooms included,
+      click-to-expand bill history so owners don't have to open one page per
+      tenant). Building detail (`/owner/buildings/[id]`) defaults to a Tenants
+      tab with the same roster; Flats remains a second tab.
+
 ### Not started yet
 - [ ] **Sanity-check the bulk import template's column layout against the
       actual Excel sheet the friend/owner has been using.** The template

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import DataTable, { type Column } from "@/components/DataTable";
+import BillHistoryTable, {
+  type BillHistoryRow,
+} from "@/app/owner/flats/[id]/BillHistoryTable";
 import { updateBillPayment } from "@/app/owner/bills/actions";
 import { deleteTenant } from "@/app/owner/buildings/actions";
 
@@ -19,6 +23,8 @@ export interface TenantListRow {
   mode: string | null;
   verified: boolean | null;
   difference: number | null;
+  pendingAllTime?: number;
+  vacant?: boolean;
 }
 
 function TenantBillCell({ row }: { row: TenantListRow }) {
@@ -27,6 +33,10 @@ function TenantBillCell({ row }: { row: TenantListRow }) {
   const [paid, setPaid] = useState(String(row.paid ?? 0));
   const [mode, setMode] = useState(row.mode ?? "");
   const [verified, setVerified] = useState(row.verified ?? false);
+
+  if (row.vacant) {
+    return <span className="text-ink-muted">—</span>;
+  }
 
   if (!row.billId || row.total === null) {
     return <span className="text-ink-muted">No bill yet</span>;
@@ -106,7 +116,8 @@ function DeleteTenantCell({ id }: { id: string }) {
         type="button"
         disabled={isPending}
         onClick={() => {
-          if (!confirm("Delete this tenant record? This cannot be undone.")) return;
+          if (!confirm("Delete this tenant record? This cannot be undone."))
+            return;
           setError(null);
           startTransition(async () => {
             try {
@@ -125,20 +136,51 @@ function DeleteTenantCell({ id }: { id: string }) {
   );
 }
 
-export default function TenantsListTable({ rows }: { rows: TenantListRow[] }) {
+export default function TenantsListTable({
+  rows,
+  hideBuilding = false,
+  historyByFlatId,
+}: {
+  rows: TenantListRow[];
+  hideBuilding?: boolean;
+  historyByFlatId?: Record<string, BillHistoryRow[]>;
+}) {
   const columns: Column<TenantListRow>[] = [
+    {
+      key: "room",
+      header: "Room",
+      accessor: (r) => (
+        <Link
+          href={`/owner/flats/${r.flatId}`}
+          onClick={(e) => e.stopPropagation()}
+          className="font-medium text-ink hover:underline"
+        >
+          {r.roomNo}
+        </Link>
+      ),
+      sortValue: (r) => r.roomNo,
+    },
     {
       key: "name",
       header: "Tenant",
-      accessor: (r) => <span className="font-medium text-ink">{r.name}</span>,
+      accessor: (r) =>
+        r.vacant ? (
+          <span className="text-ink-muted">Vacant</span>
+        ) : (
+          <span className="font-medium text-ink">{r.name}</span>
+        ),
       sortValue: (r) => r.name.toLowerCase(),
     },
-    {
-      key: "location",
-      header: "Flat",
-      accessor: (r) => `${r.buildingName} · Room ${r.roomNo}`,
-      sortValue: (r) => `${r.buildingName} ${r.roomNo}`.toLowerCase(),
-    },
+    ...(!hideBuilding
+      ? [
+          {
+            key: "building",
+            header: "Building",
+            accessor: (r: TenantListRow) => r.buildingName,
+            sortValue: (r: TenantListRow) => r.buildingName.toLowerCase(),
+          } satisfies Column<TenantListRow>,
+        ]
+      : []),
     {
       key: "phone",
       header: "Phone",
@@ -148,12 +190,27 @@ export default function TenantsListTable({ rows }: { rows: TenantListRow[] }) {
       key: "status",
       header: "Status",
       accessor: (r) =>
-        r.is_active ? (
+        r.vacant ? (
+          <span className="text-ink-muted">Vacant</span>
+        ) : r.is_active ? (
           <span className="text-accent">Active</span>
         ) : (
           <span className="text-ink-muted">Moved out</span>
         ),
-      sortValue: (r) => (r.is_active ? 0 : 1),
+      sortValue: (r) => (r.vacant ? 2 : r.is_active ? 0 : 1),
+    },
+    {
+      key: "pending",
+      header: "Pending",
+      accessor: (r) => {
+        const pending = r.pendingAllTime ?? 0;
+        if (pending <= 0) {
+          return <span className="text-ink-muted">—</span>;
+        }
+        return <span className="text-amber">₹{pending.toLocaleString("en-IN")}</span>;
+      },
+      sortValue: (r) => r.pendingAllTime ?? 0,
+      align: "right",
     },
     {
       key: "bill",
@@ -163,7 +220,8 @@ export default function TenantsListTable({ rows }: { rows: TenantListRow[] }) {
     {
       key: "actions",
       header: "",
-      accessor: (r) => <DeleteTenantCell id={r.id} />,
+      accessor: (r) =>
+        r.vacant ? null : <DeleteTenantCell id={r.id} />,
     },
   ];
 
@@ -171,10 +229,45 @@ export default function TenantsListTable({ rows }: { rows: TenantListRow[] }) {
     <DataTable
       columns={columns}
       rows={rows}
-      searchAccessor={(r) => `${r.name} ${r.buildingName} ${r.roomNo}`}
-      searchPlaceholder="Search tenants, buildings, rooms…"
-      rowHref={(r) => `/owner/flats/${r.flatId}`}
-      rowTone={(r) => (r.is_active ? "default" : "amber")}
+      searchAccessor={(r) =>
+        `${r.name} ${r.buildingName} ${r.roomNo} ${r.phone ?? ""}`
+      }
+      searchPlaceholder="Search tenants, rooms, phones…"
+      rowExpand={
+        historyByFlatId
+          ? (r) => {
+              const history = historyByFlatId[r.flatId] ?? [];
+              if (!history.length) {
+                return (
+                  <p className="text-xs text-ink-muted">
+                    No bill history for this flat yet.{" "}
+                    <Link
+                      href={`/owner/flats/${r.flatId}`}
+                      className="underline"
+                    >
+                      Open flat
+                    </Link>
+                  </p>
+                );
+              }
+              return (
+                <div>
+                  <p className="mb-2 text-xs font-medium uppercase text-ink-muted">
+                    Bill history · Room {r.roomNo}
+                  </p>
+                  <BillHistoryTable rows={history} />
+                </div>
+              );
+            }
+          : undefined
+      }
+      rowTone={(r) =>
+        r.vacant || !r.is_active
+          ? "amber"
+          : (r.pendingAllTime ?? 0) > 0 || (r.difference ?? 0) > 0
+            ? "amber"
+            : "default"
+      }
       emptyLabel="No tenants yet."
     />
   );

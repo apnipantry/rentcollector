@@ -88,6 +88,8 @@ export async function updateBillPayment(formData: FormData) {
   }
 
   revalidatePath("/owner/bills");
+  revalidatePath("/owner/tenants");
+  revalidatePath("/owner/buildings");
 }
 
 export async function deleteBill(billId: string) {
